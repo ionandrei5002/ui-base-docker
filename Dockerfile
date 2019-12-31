@@ -1,22 +1,40 @@
 FROM ubuntu:18.04
 
+# ARGS
+ARG userid
+ARG groupid
+ARG username
+
 # SET NONINTERACTIVE
 ENV DEBIAN_FRONTEND "noninteractive"
 
+# RUN STUFF AS ROOT
+USER root
+
 RUN apt update && \
     apt install -y \
+    apt-transport-https \
+    aptitude \
+    bsdmainutils \
+    coreutils \
     curl \
     gpg \
-    coreutils \
-    tree \
-    nano \
     less \
-    aptitude \
-    net-tools \
+    locales \
     locate \
-    bsdmainutils \
+    nano \
+    net-tools \
     netcat-openbsd \
-    apt-transport-https
+    tree \
+    wget \
+    sudo
+
+RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
+    && locale-gen en_US.UTF-8
+
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US
+ENV LC_ALL en_US.UTF-8
 
 RUN apt update \
     && apt install -y \
@@ -40,14 +58,29 @@ RUN apt install -y \
     xdg-utils \
     dbus-x11
 
-RUN apt install -y wget
-
 RUN mkdir -p /var/run/dbus
 
-RUN useradd -m andrei
-ENV USER andrei
-WORKDIR /home/andrei/
+RUN mkdir -p /home/$username \
+    && echo "$username:x:$userid:$groupid:$username,,,:/home/$username:/bin/bash" >> /etc/passwd \
+    && echo "$username:x:$userid:" >> /etc/group \
+    && mkdir -p /etc/sudoers.d \
+    && echo "$username ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$username \
+    && chmod 0440 /etc/sudoers.d/$username \
+    && chown $userid:$groupid -R /home/$username \
+    && chmod 777 -R /home/$username \
+    && usermod -a -G $username www-data \
+    && dbus-uuidgen > /var/lib/dbus/machine-id
 
-RUN echo "root:root" | chpasswd
+RUN apt clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /tmp/*
 
-RUN echo 'include "/usr/share/themes/Ambiant-MATE/gtk-2.0/gtkrc"' > /home/andrei/.gtkrc-2.0
+# UNSET NONINTERACTIVE
+ENV DEBIAN_FRONTEND ""
+
+USER $username
+ENV SHELL /bin/bash
+ENV HOME /home/$username
+WORKDIR /home/$username
+
+RUN echo 'include "/usr/share/themes/Ambiant-MATE/gtk-2.0/gtkrc"' > /home/$username/.gtkrc-2.0

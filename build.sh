@@ -1,3 +1,12 @@
 #!/bin/bash
 
-docker build --rm -f "Dockerfile" -t ui-base-docker:latest .
+userid=$(id -u)
+groupid=$(id -g)
+username=$(whoami)
+
+docker build \
+    --build-arg userid="$userid" \
+    --build-arg groupid="$groupid" \
+    --build-arg username="$username" \
+    --rm -f "Dockerfile" \
+    -t ui-base-docker:latest .
