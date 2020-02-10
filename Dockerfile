@@ -56,7 +56,8 @@ RUN apt install -y \
     libx11-xcb-dev \
     pkg-config \
     xdg-utils \
-    dbus-x11
+    dbus-x11 \
+    git
 
 RUN mkdir -p /var/run/dbus
 
