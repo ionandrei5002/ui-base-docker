@@ -52,7 +52,8 @@ RUN apt update \
     ubuntu-mate-icon-themes \
     ubuntu-mate-themes
 
-RUN apt install -y \
+RUN apt update \
+    && apt install -y \
     libx11-xcb-dev \
     pkg-config \
     xdg-utils \
